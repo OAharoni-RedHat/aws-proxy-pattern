@@ -23,24 +23,17 @@ visible_hostname squid
 
 #Handling HTTP requests
 http_port 3129 intercept
-http_access allow all
+acl allowed_http_sites dstdomain .amazonaws.com
+acl allowed_http_sites dstdomain .security.ubuntu.com
+http_access allow allowed_http_sites
 
 #Handling HTTPS requests
 https_port 3130 cert=/etc/squid/ssl/squid.pem ssl-bump intercept
 acl SSL_port port 443
 http_access allow SSL_port
 acl allowed_https_sites ssl::server_name .amazonaws.com
-acl allowed_https_sites ssl::server_name .quay.io
-acl allowed_https_sites ssl::server_name .openshift.com
-acl allowed_https_sites ssl::server_name .redhat.com
-acl allowed_https_sites ssl::server_name .redhat.io
-acl allowed_https_sites ssl::server_name .openshift.org
-acl allowed_https_sites ssl::server_name .rhcloud.com
-acl allowed_https_sites ssl::server_name .okd.io
-acl allowed_https_sites ssl::server_name .amazon.com
-acl allowed_https_sites ssl::server_name .cloudfront.net
-acl allowed_https_sites ssl::server_name .snapcraft.io
-
+acl allowed_https_sites ssl::server_name .badssl.com
+acl allowed_https_sites ssl::server_name .security.ubuntu.com
 acl step1 at_step SslBump1
 acl step2 at_step SslBump2
 acl step3 at_step SslBump3

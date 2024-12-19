@@ -4,7 +4,7 @@ data "aws_ami" "ubuntu" {
 
     filter {
         name = "name"
-        values = ["ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-*"]
+        values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
     }
 
     filter {
@@ -19,7 +19,7 @@ data "aws_ami" "ubuntu" {
 resource "aws_vpc" "aws_proxy_pattern_vpc" {
     cidr_block = "${var.cidr_block}"
 
-    tags {
+    tags = {
         Name = "aws_proxy_pattern_vpc"
     }
     enable_dns_support = true
@@ -28,6 +28,7 @@ resource "aws_vpc" "aws_proxy_pattern_vpc" {
 
 resource "aws_internet_gateway" "igw" {
     vpc_id = "${aws_vpc.aws_proxy_pattern_vpc.id}"
+    
 }
 
 # The proxy will live here, think of it as the DMZ where everything gets
@@ -37,9 +38,10 @@ resource "aws_subnet" "public_subnet" {
     cidr_block = "${var.cidr_public_subnet}"
     map_public_ip_on_launch = true
 
-    tags {
+    tags = {
         Name = "aws_proxy_pattern_public_subnet"
     }
+    availability_zone = "us-west-2a"
 }
 
 # The private host will live here and default routes traffic out to the public
@@ -48,9 +50,10 @@ resource "aws_subnet" "private_subnet" {
     vpc_id = "${aws_vpc.aws_proxy_pattern_vpc.id}"
     cidr_block = "${var.cidr_private_subnet}"
 
-    tags {
+    tags = {
         Name = "aws_proxy_pattern_private_subnet"
     }
+    availability_zone = "us-west-2a"
 }
 
 # Route tables for each type of subnet
@@ -62,7 +65,7 @@ resource "aws_route_table" "public_routes" {
         gateway_id = "${aws_internet_gateway.igw.id}"
     }
 
-    tags {
+    tags = {
         Name = "public_routes"
     }
 }
@@ -70,7 +73,7 @@ resource "aws_route_table" "public_routes" {
 resource "aws_route_table" "private_routes" {
     vpc_id = "${aws_vpc.aws_proxy_pattern_vpc.id}"
 
-    tags {
+    tags = {
         Name = "private_routes"
     }
 }
@@ -99,9 +102,11 @@ resource "aws_instance" "host" {
 
     key_name = "${var.key_pair_name}"
 
-    tags {
+    tags = {
         Name = "aws_proxy_pattern_host"
     }
+
+    availability_zone = "us-west-2a"
 }
 
 # A host that will enable us to SSH to the private host for testing
@@ -112,9 +117,11 @@ resource "aws_instance" "management_host" {
 
     key_name = "${var.key_pair_name}"
 
-    tags {
+    tags = {
         Name = "aws_proxy_pattern_management_host"
     }
+
+    availability_zone = "us-west-2a"
 }
 
 output "public_subnet_id" {
